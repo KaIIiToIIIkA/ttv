@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ігри</title>
+  <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/djesld12q-stack/sunwukong/main/favicon.png">
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/djesld12q-stack/sunwukong/main/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --accent: #9146FF; --bg: #07070f; --bg4: #181830;
+      --text: #eeeef8; --muted: #6e6e90; --border: rgba(145,70,255,.18);
+      --green: #00c864; --yellow: #f5c518; --red: #ff4655;
+    }
+    body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: linear-gradient(rgba(145,70,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(145,70,255,.04) 1px, transparent 1px);
+      background-size: 44px 44px; pointer-events: none; z-index: 0;
+    }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 40px; height: 56px;
+      background: rgba(7,7,15,.96); border-bottom: 1px solid var(--border); backdrop-filter: blur(14px);
+    }
+    .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 4px; color: var(--accent); text-decoration: none; }
+    .nav-links { display: flex; gap: 24px; }
+    .nav-links a { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color .2s; padding-bottom: 2px; border-bottom: 2px solid transparent; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-links a.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    .page { position: relative; z-index: 1; max-width: 920px; margin: 0 auto; padding: 100px 24px 60px; }
+    .section-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 3px; color: var(--accent); margin-bottom: 4px; }
+    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 5px; margin-bottom: 28px; }
+
+    .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+
+    .game-card {
+      background: var(--bg4); border: 1px solid var(--border); border-radius: 10px;
+      overflow: hidden; transition: transform .2s, border-color .2s, box-shadow .2s; position: relative;
+      cursor: pointer;
+    }
+    .game-card:hover { transform: translateY(-4px); border-color: rgba(145,70,255,.45); box-shadow: 0 12px 40px rgba(145,70,255,.2); }
+    .game-card.dropped:hover { border-color: rgba(255,70,85,.45); box-shadow: 0 12px 40px rgba(255,70,85,.15); }
+    .game-card:hover .card-hover-hint { opacity: 1; }
+
+    .game-card img { width: 100%; aspect-ratio: 460/215; object-fit: cover; display: block; }
+    .game-card.dropped img { filter: grayscale(40%) brightness(0.8); transition: filter .2s; }
+    .game-card.dropped:hover img { filter: grayscale(0%) brightness(1); }
+
+    .card-hover-hint {
+      position: absolute; top: 0; left: 0; right: 0;
+      aspect-ratio: 460/215;
+      background: rgba(7,7,15,.72);
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--text);
+      opacity: 0; transition: opacity .2s; pointer-events: none;
+    }
+
+    .game-card-body { padding: 14px 16px 16px; }
+    .game-card-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; color: var(--text); margin-bottom: 6px; }
+    .game-card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .game-badge { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 2px; padding: 3px 10px; border-radius: 2px; }
+    .game-badge.done    { background: rgba(0,200,100,.1);   border: 1px solid rgba(0,200,100,.35);  color: var(--green);  }
+    .game-badge.playing { background: rgba(145,70,255,.1);  border: 1px solid rgba(145,70,255,.35); color: var(--accent); }
+    .game-badge.planned { background: rgba(245,197,24,.08); border: 1px solid rgba(245,197,24,.35); color: var(--yellow); }
+    .game-badge.dropped { background: rgba(255,70,85,.08);  border: 1px solid rgba(255,70,85,.35);  color: var(--red); }
+    .game-platform { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 1px; color: var(--muted); margin-left: auto; }
+
+    .game-card-overlay {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(0,200,100,.15); border: 1px solid rgba(0,200,100,.4);
+      border-radius: 2px; padding: 3px 8px;
+      font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--green);
+      pointer-events: none;
+    }
+    .game-card-overlay.playing-overlay { background: rgba(145,70,255,.15); border-color: rgba(145,70,255,.4); color: var(--accent); }
+    .game-card-overlay.planned-overlay { background: rgba(245,197,24,.1);  border-color: rgba(245,197,24,.4); color: var(--yellow); }
+    .game-card-overlay.dropped-overlay { background: rgba(255,70,85,.1);   border-color: rgba(255,70,85,.4);  color: var(--red); }
+
+    .card-rating-chip {
+      position: absolute; top: 8px; left: 8px;
+      background: rgba(7,7,15,.85); border: 1px solid rgba(245,197,24,.5);
+      border-radius: 3px; padding: 3px 8px;
+      font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--yellow);
+      pointer-events: none;
+    }
+
+    .section-divider { border: none; border-top: 1px solid var(--border); margin: 50px 0; }
+
+    /* ── MODAL ── */
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(7,7,15,.88); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+      opacity: 0; pointer-events: none; transition: opacity .25s;
+    }
+    .modal-backdrop.open { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: #0e0e20; border: 1px solid var(--border); border-radius: 14px;
+      width: 100%; max-width: 520px;
+      transform: translateY(20px) scale(.97); transition: transform .25s;
+      overflow: hidden;
+    }
+    .modal-backdrop.open .modal { transform: translateY(0) scale(1); }
+
+    .modal-cover { width: 100%; aspect-ratio: 460/215; object-fit: cover; display: block; border-bottom: 1px solid var(--border); }
+    .modal-body  { padding: 20px 24px 24px; }
+    .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 3px; margin-bottom: 16px; }
+
+    .modal-rating-row { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+    .modal-score { font-family: 'Bebas Neue', sans-serif; font-size: 48px; color: var(--yellow); line-height: 1; }
+    .modal-score-denom { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 2px; color: var(--muted); margin-top: 4px; }
+    .modal-score-bar { flex: 1; height: 5px; background: rgba(255,255,255,.07); border-radius: 3px; overflow: hidden; }
+    .modal-score-fill { height: 100%; background: linear-gradient(90deg, var(--yellow), #ffaa00); border-radius: 3px; transition: width .5s cubic-bezier(.4,0,.2,1); }
+
+    .modal-review-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--muted); margin-bottom: 8px; }
+    .modal-review-text {
+      background: rgba(255,255,255,.03); border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px 14px; font-size: 15px; line-height: 1.6; color: var(--text); white-space: pre-wrap;
+      margin-bottom: 18px;
+    }
+    .modal-no-review { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 18px; }
+
+    .modal-close-btn {
+      display: block; width: 100%;
+      font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px;
+      padding: 10px; border-radius: 8px; border: 1px solid var(--border);
+      background: transparent; color: var(--muted); cursor: pointer; transition: border-color .15s, color .15s;
+    }
+    .modal-close-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    footer { position: relative; z-index: 1; border-top: 1px solid var(--border); padding: 28px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); margin-top: 60px; }
+    footer strong { color: var(--accent); }
+
+    /* ── BURGER MOBILE MENU ── */
+    .burger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; background: none; border: none; z-index: 300; }
+    .burger span { display: block; width: 24px; height: 2px; background: var(--text); border-radius: 2px; transition: all .3s; }
+    .burger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .burger.open span:nth-child(2) { opacity: 0; }
+    .burger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+    .mobile-menu {
+      display: none; position: fixed; top: 56px; left: 0; right: 0; bottom: 0; z-index: 150;
+      background: rgba(7,7,15,.98); backdrop-filter: blur(20px);
+      flex-direction: column; align-items: center; justify-content: center; gap: 32px;
+      border-top: 1px solid var(--border);
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 4px; color: var(--muted); text-decoration: none; transition: color .2s; }
+    .mobile-menu a:hover, .mobile-menu a.active { color: var(--accent); }
+    @media(max-width: 768px) {
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .burger { display: flex; }
+    }
+
+    /* ── DROPDOWN ── */
+    .nav-dropdown { position: relative; }
+    .nav-dropdown > a { cursor: pointer; }
+    .dropdown-menu {
+      position: absolute; top: 100%; left: 50%;
+      padding-top: 14px;
+      transform: translateX(-50%);
+      opacity: 0; pointer-events: none;
+      transition: opacity .2s, transform .2s;
+      z-index: 500;
+    }
+    .dropdown-menu-inner {
+      background: rgba(7,7,15,.98); border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px 0; min-width: 170px;
+      backdrop-filter: blur(14px);
+      transform: translateY(-6px); transition: transform .2s;
+    }
+    .nav-dropdown:hover .dropdown-menu {
+      opacity: 1; pointer-events: all;
+    }
+    .nav-dropdown:hover .dropdown-menu-inner {
+      transform: translateY(0);
+    }
+    .dropdown-menu a {
+      display: block; padding: 10px 18px;
+      font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--muted); text-decoration: none; border-bottom: none !important;
+      transition: color .15s, background .15s; white-space: nowrap;
+    }
+    .dropdown-menu a:hover { color: var(--text); background: rgba(145,70,255,.08); }
+    .dropdown-menu a.active { color: var(--accent); }
+    .nav-dropdown > a.dropdown-active { color: var(--accent); border-bottom-color: var(--accent) !important; }
+
+    /* ══════════ MOBILE GAMES ══════════ */
+    @media(max-width:600px){
+      .games-grid { grid-template-columns:1fr 1fr; gap:10px; }
+    }
+    @media(max-width:380px){
+      .games-grid { grid-template-columns:1fr; }
+      .page { padding: 76px 12px 36px; }
+    }
+    /* Modal mobile */
+    .modal { max-height:92vh; overflow-y:auto; }
+    @media(max-width:540px){
+      .modal-backdrop { padding:12px; align-items:flex-end; }
+      .modal { border-radius:14px 14px 0 0; max-width:100%; max-height:88vh; }
+      .modal-body { padding:16px 16px 20px; }
+      .modal-score { font-size:38px; }
+      .modal-title { font-size:22px; }
+    }
+
+    @media(max-width:380px){
+      .mobile-menu a { font-size:26px; letter-spacing:2px; }
+      .mobile-menu { gap:20px; }
+    }
+
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">kaii<span>itoi</span>iika</a> 
+  <div class="nav-links">
+    <a href="index.html">Головна</a>
+    <a href="about.html">Про мене</a>
+    <a href="stream.html">Стрім</a>
+    <a href="games.html" class="active">Ігри</a>
+    <div class="nav-dropdown">
+      <a class="">Інше ▾</a>
+      <div class="dropdown-menu">
+        <div class="dropdown-menu-inner">
+          <a href="scripts.html">Мої скрипти</a>
+          <a href="links.html">Посилання</a>
+          <a href="schedule.html">Розклад</a>
+          <a href="donators.html">Топ донатери</a>
+          <a href="clips.html">Кліпи</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button class="burger" id="burger" aria-label="Меню">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="index.html">Головна</a>
+  <a href="about.html">Про мене</a>
+  <a href="stream.html">Стрім</a>
+  <a href="games.html" class="active">Ігри</a>
+  <a href="scripts.html">Мої скрипти</a>
+  <a href="links.html">Посилання</a>
+  <a href="schedule.html">Розклад</a>
+  <a href="donators.html">Топ донатери</a>
+  <a href="clips.html">Кліпи</a>
+</div>
+
+<div class="page">
+
+
+
+ <p class="section-label">// зараз</p>
+  <h1 class="section-title">ГРАЮ ЗАРАЗ</h1>
+ 
+  <div class="games-grid" style="margin-bottom: 60px;">
+ 
+
+  <div class="game-card"
+         data-title="Warframe"
+         data-img="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/230410/60ce7425b864dd3c0dd855bfc66004c6f9ca4844/header.jpg?t=1778595605"
+         data-rating=""
+         data-review="">
+      <img src="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/230410/60ce7425b864dd3c0dd855bfc66004c6f9ca4844/header.jpg?t=1778595605" alt="Warframe">
+      <div class="card-hover-hint">👁 ПОДИВИТИСЬ</div>
+      <div class="game-card-overlay playing-overlay">▶ ГРАЮ</div>
+      <div class="game-card-body">
+        <div class="game-card-title">Warframe</div>
+        <div class="game-card-meta">
+          <span class="game-badge playing">▶ ГРАЮ</span>
+          <span class="game-platform">🎮 STEAM</span>
+        </div>
+      </div>
+    </div>
+
+
+        
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- ══════════ ПРОЙДЕНІ ІГРИ ══════════ -->
+  <p class="section-label">// steam</p>
+  <h2 class="section-title">ПРОЙДЕНІ ІГРИ</h2>
+  <div class="games-grid" style="margin-bottom: 60px;">
+
+    <div class="game-card"
+         data-title="REMNANT II®"
+         data-img="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1282100/header.jpg?t=1764659459"
+         data-rating="10"
+         data-review="Просто дуже красива гра від якої я навіть просльозився! класна гра!">
+      <img src="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1282100/header.jpg?t=1764659459" alt="REMNANT II®">
+      <div class="card-hover-hint">★ ПЕРЕГЛЯНУТИ ВІДГУК</div>
+      <div class="game-card-overlay">✓ ПРОЙДЕНО</div>
+      <div class="card-rating-chip">★ 10/10</div>
+      <div class="game-card-body">
+        <div class="game-card-title">REMNANT II®</div>
+        <div class="game-card-meta">
+          <span class="game-badge done">✓ ПРОЙДЕНО</span>
+          <span class="game-platform">🎮</span>
+        </div>
+      </div>
+    </div>
+
+
+
+
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- ══════════ ЗАКИНУТІ ІГРИ ══════════ -->
+  <p class="section-label">// dropped</p>
+  <h2 class="section-title">ЗАКИНУТІ ІГРИ</h2>
+  <div class="games-grid" style="margin-bottom: 60px;">
+
+    <!--
+    ╔══════════════════════════════════════════════════════════════════╗
+    ║  ЯК ДОДАВАТИ ЗАКИНУТІ ІГРИ                                      ║
+    ║                                                                  ║
+    ║  Скопіюй один з блоків нижче і заміни:                         ║
+    ║  - data-title="Назва гри"                                       ║
+    ║  - data-img="посилання на обкладинку"                           ║
+    ║  - data-rating="5"  ← або "" якщо не хочеш ставити оцінку      ║
+    ║  - data-review="Чому закинув..."  ← або ""                     ║
+    ║  - src="..." alt="..." у тегу <img>                             ║
+    ║  - текст у .game-card-title                                      ║
+    ╚══════════════════════════════════════════════════════════════════╝
+    -->
+
+    <!-- ПРИКЛАД ЗАКИНУТОЇ ГРИ — замінити на реальні дані -->
+
+<!--
+
+<div class="game-card dropped"
+         data-title="назва гри"
+         data-img="посилання на картинку "
+         data-rating="5.10"
+         data-review="Гра цікавий має стиль. Українську найголовінше що має це великий жирний плюс . але є 1 великий мінус одноманітний гемплей . вічно виходять багато мобів і в кінці лиш 1 бос і більшее нічого сюжет не зрозумілий і не дуже цікавий">
+      <img src="ПОсилання на картинку" alt="назва гри">
+      <div class="card-hover-hint">✗ ПЕРЕГЛЯНУТИ</div>
+      <div class="game-card-overlay dropped-overlay">✗ ЗАКИНУТО</div>
+      <div class="game-card-body">
+        <div class="game-card-title">Назва гри</div>
+        <div class="game-card-meta">
+          <span class="game-badge dropped">✗ ЗАКИНУТО</span>
+          <span class="game-platform">🎮 STEAM</span>
+        </div>
+      </div>
+    </div>
+
+<div class="game-card dropped"
+         data-title="назва гри"
+         data-img="посилання на картинку "
+         data-rating="5.10"
+         data-review="Гра цікавий має стиль. Українську найголовінше що має це великий жирний плюс . але є 1 великий мінус одноманітний гемплей . вічно виходять багато мобів і в кінці лиш 1 бос і більшее нічого сюжет не зрозумілий і не дуже цікавий">
+      <img src="ПОсилання на картинку" alt="назва гри">
+      <div class="card-hover-hint">✗ ПЕРЕГЛЯНУТИ</div>
+      <div class="game-card-overlay dropped-overlay">✗ ЗАКИНУТО</div>
+      <div class="game-card-body">
+        <div class="game-card-title">Назва гри</div>
+        <div class="game-card-meta">
+          <span class="game-badge dropped">✗ ЗАКИНУТО</span>
+          <span class="game-platform">🎮 STEAM</span>
+        </div>
+      </div>
+    </div>
+
+
+
+
+    
+  </div>
+
+    
+    
+
+
+  <div class="section-divider"></div>
+
+
+  <p class="section-label">// wishlist</p>
+  <h2 class="section-title">ЗАПЛАНОВАНІ</h2>
+  <div class="games-grid">
+
+    <div class="game-card"
+         data-title="назва гри"
+         data-img="посилання на картинку "
+         data-rating=""
+         data-review="">
+      <img src="Посилання на картинку" alt="назва гри">
+      <div class="card-hover-hint">👁 ПОДИВИТИСЬ</div>
+      <div class="game-card-overlay planned-overlay">⏳ планах пограти</div>
+      <div class="game-card-body">
+        <div class="game-card-title">назва гри</div>
+        <div class="game-card-meta">
+         <span class="game-platform">🎮 STEAM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-card"
+         data-title="назва гри"
+         data-img="посилання на картинку "
+         data-rating=""
+         data-review="">
+      <img src="Посилання на картинку" alt="назва гри">
+      <div class="card-hover-hint">👁 ПОДИВИТИСЬ</div>
+      <div class="game-card-overlay planned-overlay">⏳ планах пограти</div>
+      <div class="game-card-body">
+        <div class="game-card-title">назва гри</div>
+        <div class="game-card-meta">
+         <span class="game-platform">🎮 STEAM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-card"
+         data-title="назва гри"
+         data-img="посилання на картинку "
+         data-rating=""
+         data-review="">
+      <img src="Посилання на картинку" alt="назва гри">
+      <div class="card-hover-hint">👁 ПОДИВИТИСЬ</div>
+      <div class="game-card-overlay planned-overlay">⏳ планах пограти</div>
+      <div class="game-card-body">
+        <div class="game-card-title">назва гри</div>
+        <div class="game-card-meta">
+         <span class="game-platform">🎮 STEAM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-card"
+         data-title="назва гри"
+         data-img="посилання на картинку "
+         data-rating=""
+         data-review="">
+      <img src="Посилання на картинку" alt="назва гри">
+      <div class="card-hover-hint">👁 ПОДИВИТИСЬ</div>
+      <div class="game-card-overlay planned-overlay">⏳ планах пограти</div>
+      <div class="game-card-body">
+        <div class="game-card-title">назва гри</div>
+        <div class="game-card-meta">
+         <span class="game-platform">🎮 STEAM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-card"
+         data-title="назва гри"
+         data-img="посилання на картинку "
+         data-rating=""
+         data-review="">
+      <img src="Посилання на картинку" alt="назва гри">
+      <div class="card-hover-hint">👁 ПОДИВИТИСЬ</div>
+      <div class="game-card-overlay planned-overlay">⏳ планах пограти</div>
+      <div class="game-card-body">
+        <div class="game-card-title">назва гри</div>
+        <div class="game-card-meta">
+         <span class="game-platform">🎮 STEAM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-card"
+         data-title="назва гри"
+         data-img="посилання на картинку "
+         data-rating=""
+         data-review="">
+      <img src="Посилання на картинку" alt="назва гри">
+      <div class="card-hover-hint">👁 ПОДИВИТИСЬ</div>
+      <div class="game-card-overlay planned-overlay">⏳ планах пограти</div>
+      <div class="game-card-body">
+        <div class="game-card-title">назва гри</div>
+        <div class="game-card-meta">
+         <span class="game-platform">🎮 STEAM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-card"
+         data-title="назва гри"
+         data-img="посилання на картинку "
+         data-rating=""
+         data-review="">
+      <img src="Посилання на картинку" alt="назва гри">
+      <div class="card-hover-hint">👁 ПОДИВИТИСЬ</div>
+      <div class="game-card-overlay planned-overlay">⏳ планах пограти</div>
+      <div class="game-card-body">
+        <div class="game-card-title">назва гри</div>
+        <div class="game-card-meta">
+         <span class="game-platform">🎮 STEAM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-card"
+         data-title="назва гри"
+         data-img="посилання на картинку "
+         data-rating=""
+         data-review="">
+      <img src="Посилання на картинку" alt="назва гри">
+      <div class="card-hover-hint">👁 ПОДИВИТИСЬ</div>
+      <div class="game-card-overlay planned-overlay">⏳ планах пограти</div>
+      <div class="game-card-body">
+        <div class="game-card-title">назва гри</div>
+        <div class="game-card-meta">
+         <span class="game-platform">🎮 STEAM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-card"
+         data-title="назва гри"
+         data-img="посилання на картинку "
+         data-rating=""
+         data-review="">
+      <img src="Посилання на картинку" alt="назва гри">
+      <div class="card-hover-hint">👁 ПОДИВИТИСЬ</div>
+      <div class="game-card-overlay planned-overlay">⏳ планах пограти</div>
+      <div class="game-card-body">
+        <div class="game-card-title">назва гри</div>
+        <div class="game-card-meta">
+         <span class="game-platform">🎮 STEAM</span>
+        </div>
+      </div>
+    </div>
+
+    
+
+    <div class="game-card"
+         data-title="назва гри"
+         data-img="посилання на картинку "
+         data-rating=""
+         data-review="">
+      <img src="Посилання на картинку" alt="назва гри">
+      <div class="card-hover-hint">👁 ПОДИВИТИСЬ</div>
+      <div class="game-card-overlay planned-overlay">⏳ планах пограти</div>
+      <div class="game-card-body">
+        <div class="game-card-title">назва гри</div>
+        <div class="game-card-meta">
+         <span class="game-platform">🎮 STEAM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-card"
+         data-title="назва гри"
+         data-img="посилання на картинку "
+         data-rating=""
+         data-review="">
+      <img src="Посилання на картинку" alt="назва гри">
+      <div class="card-hover-hint">👁 ПОДИВИТИСЬ</div>
+      <div class="game-card-overlay planned-overlay">⏳ планах пограти</div>
+      <div class="game-card-body">
+        <div class="game-card-title">назва гри</div>
+        <div class="game-card-meta">
+         <span class="game-platform">🎮 STEAM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-card"
+         data-title="назва гри"
+         data-img="посилання на картинку "
+         data-rating=""
+         data-review="">
+      <img src="Посилання на картинку" alt="назва гри">
+      <div class="card-hover-hint">👁 ПОДИВИТИСЬ</div>
+      <div class="game-card-overlay planned-overlay">⏳ планах пограти</div>
+      <div class="game-card-body">
+        <div class="game-card-title">назва гри</div>
+        <div class="game-card-meta">
+         <span class="game-platform">🎮 STEAM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-card"
+         data-title="назва гри"
+         data-img="посилання на картинку "
+         data-rating=""
+         data-review="">
+      <img src="Посилання на картинку" alt="назва гри">
+      <div class="card-hover-hint">👁 ПОДИВИТИСЬ</div>
+      <div class="game-card-overlay planned-overlay">⏳ планах пограти</div>
+      <div class="game-card-body">
+        <div class="game-card-title">назва гри</div>
+        <div class="game-card-meta">
+         <span class="game-platform">🎮 STEAM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-card"
+         data-title="назва гри"
+         data-img="посилання на картинку "
+         data-rating=""
+         data-review="">
+      <img src="Посилання на картинку" alt="назва гри">
+      <div class="card-hover-hint">👁 ПОДИВИТИСЬ</div>
+      <div class="game-card-overlay planned-overlay">⏳ планах пограти</div>
+      <div class="game-card-body">
+        <div class="game-card-title">назва гри</div>
+        <div class="game-card-meta">
+         <span class="game-platform">🎮 STEAM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-card"
+         data-title="назва гри"
+         data-img="посилання на картинку "
+         data-rating=""
+         data-review="">
+      <img src="Посилання на картинку" alt="назва гри">
+      <div class="card-hover-hint">👁 ПОДИВИТИСЬ</div>
+      <div class="game-card-overlay planned-overlay">⏳ планах пограти</div>
+      <div class="game-card-body">
+        <div class="game-card-title">назва гри</div>
+        <div class="game-card-meta">
+         <span class="game-platform">🎮 STEAM</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════ MODAL (READ-ONLY) ══════════ -->
+<div class="modal-backdrop" id="reviewModal">
+  <div class="modal">
+    <img class="modal-cover" id="modalCover" src="" alt="">
+    <div class="modal-body">
+      <div class="modal-title" id="modalTitle"></div>
+      <div class="modal-rating-row" id="modalRatingRow">
+        <div>
+          <div class="modal-score" id="modalScore"></div>
+          <div class="modal-score-denom">/ 10</div>
+        </div>
+        <div style="flex:1">
+          <div class="modal-score-bar"><div class="modal-score-fill" id="modalScoreFill"></div></div>
+        </div>
+      </div>
+      <div class="modal-review-label" id="modalReviewLabel"></div>
+      <div class="modal-review-text"  id="modalReviewText"></div>
+      <div class="modal-no-review"    id="modalNoReview"></div>
+      <button class="modal-close-btn" onclick="closeModal()">✕ ЗАКРИТИ</button>
+    </div>
+  </div>
+</div>
+
+<footer>❤️ © 24.04.2026 <strong>sun69wukong</strong> ❤️</footer>
+
+<script>
+  document.querySelectorAll('.game-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const title  = card.dataset.title;
+      const img    = card.dataset.img;
+      const rating = card.dataset.rating;
+      const review = card.dataset.review;
+
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalCover').src = img;
+      document.getElementById('modalCover').alt = title;
+
+      const ratingRow   = document.getElementById('modalRatingRow');
+      const scoreEl     = document.getElementById('modalScore');
+      const scoreFill   = document.getElementById('modalScoreFill');
+      const reviewLabel = document.getElementById('modalReviewLabel');
+      const reviewText  = document.getElementById('modalReviewText');
+      const noReview    = document.getElementById('modalNoReview');
+
+      /* rating bar */
+      if (rating) {
+        ratingRow.style.display = 'flex';
+        scoreEl.textContent = rating;
+        setTimeout(() => { scoreFill.style.width = (parseInt(rating) * 10) + '%'; }, 60);
+      } else {
+        ratingRow.style.display = 'none';
+        scoreFill.style.width = '0%';
+      }
+
+      /* review text */
+      if (review) {
+        reviewLabel.textContent    = '// МІЙ ВІДГУК';
+        reviewLabel.style.display  = 'block';
+        reviewText.textContent     = review;
+        reviewText.style.display   = 'block';
+        noReview.style.display     = 'none';
+      } else {
+        reviewLabel.style.display  = 'none';
+        reviewText.style.display   = 'none';
+        noReview.style.display     = 'block';
+        noReview.textContent       = rating
+          ? '// відгук ще не написано'
+          : '// відгук і оцінка ще не додані';
+      }
+
+      document.getElementById('reviewModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    });
+  });
+
+  function closeModal() {
+    document.getElementById('reviewModal').classList.remove('open');
+    document.body.style.overflow = '';
+    document.getElementById('modalScoreFill').style.width = '0%';
+  }
+
+  document.getElementById('reviewModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('reviewModal')) closeModal();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+
+<script>
+  const _burger = document.getElementById('burger');
+  const _mobileMenu = document.getElementById('mobileMenu');
+  if (_burger && _mobileMenu) {
+    _burger.addEventListener('click', () => {
+      _burger.classList.toggle('open');
+      _mobileMenu.classList.toggle('open');
+    });
+    _mobileMenu.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => {
+        _burger.classList.remove('open');
+        _mobileMenu.classList.remove('open');
+      });
+    });
+  }
+</script>
+
+</body>
+</html>
