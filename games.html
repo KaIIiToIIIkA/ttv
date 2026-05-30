@@ -35,7 +35,7 @@
     .nav-links a:hover { color: var(--text); }
     .nav-links a.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-    .page { position: relative; z-index: 1; max-width: 920px; margin: 0 auto; padding: 100px 24px 60px; }
+    .page { position: relative; z-index: 1; max-width: 920px; margin: 0 auto; padding: 100px 24px 60px; text-align: center; }
     .section-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 3px; color: var(--accent); margin-bottom: 4px; }
     .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 5px; margin-bottom: 28px; }
 
@@ -63,7 +63,7 @@
       opacity: 0; transition: opacity .2s; pointer-events: none;
     }
 
-    .game-card-body { padding: 14px 16px 16px; }
+    .game-card-body { padding: 14px 16px 16px; text-align: left; }
     .game-card-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; color: var(--text); margin-bottom: 6px; }
     .game-card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .game-badge { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 2px; padding: 3px 10px; border-radius: 2px; }
@@ -137,7 +137,7 @@
     }
     .modal-close-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-    footer { position: relative; z-index: 1; border-top: 1px solid var(--border); padding: 28px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); margin-top: 60px; }
+    footer { position: relative; z-index: 1; border-top: 1px solid var(--border); padding: 28px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); margin-top: 60px; width: 100%; }
     footer strong { color: var(--accent); }
     footer em { color: var(--accent); font-style: normal; }
     footer span { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1px; }
@@ -664,7 +664,7 @@
   </div>
 </div>
 
-<footer><strong>Kai<em>III</em>To<em>III</em>kA</strong> · <span>рекомендовано анонімною асоціацією стримерів 🖤</span></footer>
+<footer style="position:relative;z-index:1;border-top:1px solid var(--border);padding:28px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:60px;width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;"><strong style="color:var(--accent);white-space:nowrap;">Kai<em style="color:var(--accent);font-style:normal;">III</em>To<em style="color:var(--accent);font-style:normal;">III</em>kA&nbsp;&mdash;&nbsp;рекомендовано анонімною асоціацією стримерів 🖤</strong></footer>
 
 <script>
   document.querySelectorAll('.game-card').forEach(card => {
