@@ -29,7 +29,7 @@
 
 ## 🤝 Приєднуйся
 - Twitch: [KaIIiToIIIkA](https://www.twitch.tv/kaiiitoiiika)  
-- Discord: [наш сервер](https://discord.com/invite/2GZrucnpQB)  
+- Discord: [наш сервер](https://discord.com/invite/N6DtJvp347)  
 
 ---
 
