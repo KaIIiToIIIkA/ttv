@@ -26,8 +26,7 @@
       padding: 0 40px; height: 56px;
       background: rgba(7,7,15,.96); border-bottom: 1px solid var(--border); backdrop-filter: blur(14px);
     }
-    .nav-logo { font-family: 'Bebas Neue'; font-size: 21px; letter-spacing: 4px; color: var(--text); text-decoration: none; user-select: none; }
-    .nav-logo em { color: var(--accent); font-style: normal; }
+    .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 4px; color: var(--accent); text-decoration: none; }
     .nav-links { display: flex; gap: 24px; }
     .nav-links a { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color .2s; padding-bottom: 2px; border-bottom: 2px solid transparent; }
     .nav-links a:hover { color: var(--text); }
@@ -49,7 +48,10 @@
     .script-card img {
       width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block;
       background: var(--bg3);
+      cursor: zoom-in;
+      transition: filter .2s;
     }
+    .script-card img:hover { filter: brightness(1.1); }
 
     /* ── емодзі-заглушка ── */
     .script-card-emoji {
@@ -90,10 +92,40 @@
     }
     .script-dl:hover { opacity: .85; transform: scale(1.04); }
 
+    /* ── LIGHTBOX (перегляд зображення на весь екран) ── */
+    .lightbox-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 1000;
+      align-items: center; justify-content: center;
+      padding: 60px 24px;
+      background: rgba(7,7,15,.94);
+      backdrop-filter: blur(10px);
+      cursor: zoom-out;
+    }
+    .lightbox-overlay.open { display: flex; }
+    .lightbox-overlay img {
+      max-width: 90vw; max-height: 85vh;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 24px 70px rgba(0,0,0,.6);
+      cursor: default;
+      transform: scale(.94);
+      opacity: 0;
+      transition: transform .25s ease, opacity .25s ease;
+    }
+    .lightbox-overlay.open img { transform: scale(1); opacity: 1; }
+    .lightbox-close {
+      position: absolute; top: 22px; right: 30px;
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg4); border: 1px solid var(--border); border-radius: 50%;
+      color: var(--text); font-size: 20px; line-height: 1; cursor: pointer;
+      transition: background .2s, transform .15s;
+    }
+    .lightbox-close:hover { background: var(--accent); transform: scale(1.08) rotate(90deg); }
+
     footer { position: relative; z-index: 1; border-top: 1px solid var(--border); padding: 28px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); margin-top: 60px; }
     footer strong { color: var(--accent); }
-    footer em { color: var(--accent); font-style: normal; }
-    footer span { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1px; }
 
     /* ── BURGER MOBILE MENU ── */
     .burger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; background: none; border: none; z-index: 300; }
@@ -158,6 +190,8 @@
       .page { padding: 76px 14px 40px; }
       nav { padding:0 14px; }
       footer { padding:18px 14px; }
+      .lightbox-overlay { padding: 40px 12px; }
+      .lightbox-close { top: 12px; right: 14px; width: 36px; height: 36px; font-size: 18px; }
     }
     @media(max-width:380px){
       .mobile-menu a { font-size:26px; letter-spacing:2px; }
@@ -210,81 +244,45 @@
   <div class="scripts-grid" id="scripts-container"></div>
 </div>
 
-<footer><strong>KaI<em>Ii</em>To<em>III</em>kA</strong> · <span>рекомендовано анонімною асоціацією стримерів 🖤</span></footer>
+<div class="lightbox-overlay" id="lightboxOverlay" role="dialog" aria-modal="true">
+  <button class="lightbox-close" id="lightboxClose" aria-label="Закрити">✕</button>
+  <img id="lightboxImg" src="" alt="">
+</div>
 
-<!--
+<footer><strong>KaI<em>Ii</em>To<em>III</em>kA</strong> · <span>рекомендовано анонімною асоціацією стримерів :black_heart:</span></footer>
+
 <script>
   // ▼▼▼ ДОДАВАЙ СКРИПТИ ТУТ ▼▼▼
   const SCRIPTS = [
 
-    {
-      name: "Назва скрипта тут",
-      desc: "Автоматично перекладає повідомлення при підключенні до чату.",
-      img:  "Посилання на заображення для скрипта (можна прибрати і вказати emoji нижче)",
-      url:  "Посилання на завантаження"
-    },
-
-    {
-      name: "Назва скрипта тут",
-      desc: "Дозволяє робити всі алерти в одному скрипті і сповіщувати в обс студіо",
-      img:  "Посилання на заображення для скрипта (можна прибрати і вказати emoji нижче)",
-      url:  "Посилання на завантаження"
-    },
-
-    {
-      name: "Назва скрипта тут",
-      desc: "Блокує будь який сайт який вказаний в розширенні.",
-      img:  "Посилання на заображення для скрипта (можна прибрати і вказати emoji нижче)",
-      url:  "Посилання на завантаження"
-    },
-
-    {
-      name: "Назва скрипта тут",
-      desc: "Створіть кліп за допомогою Stremerbot лиш вівши !clip name",
-      img:  "Посилання на заображення для скрипта (можна прибрати і вказати emoji нижче)",
-      url:  "Посилання на завантаження"
-    },
-
-    {
-      name: "Назва скрипта тут",
-      desc: "Зміна категорії і зміна сцени і назву стірма за доп AI",
-      img:  "Посилання на заображення для скрипта (можна прибрати і вказати emoji нижче)",
-      url:  "Посилання на завантаження"
-    },
-
-    {
-      name: "Назва скрипта тут",
-      desc: "Відкриває меню poll і можна через інтерфейс швидко робити poll",
-      img:  "Посилання на заображення для скрипта (можна прибрати і вказати emoji нижче)",
-      url:  "Посилання на завантаження"
-    },
+    // {
+  //    name: "TranslateJoin",
+   //   desc: "Автоматично перекладає повідомлення при підключенні до чату.",
+   //   img:  "https://futurenow.com.ua/wp-content/uploads/2020/04/bezkoshtovnyj-perekladach-onlajn.jpg",
+    //  url:  "https://drive.usercontent.google.com/download?id=1XqMbLJizgidnrT9vkhah6eZ8H-ii2HYg&export=download&authuser=0"
+  //  },
     
-    
-     {
-      name: "Назва скрипта тут",
-       desc: "Відрикває Prediction в красивому меню і леке керування",
-      img:  "https://...",        ← або прибери рядок і вкажи emoji нижче
-      img:  "Посилання на заображення для скрипта (можна прибрати і вказати emoji нижче)",        
-       url:  "Посилання на завантаження"
-     },
 
-    
-    Приклад як додавати нові скрипти:
-   {
-       name: "Назва скрипта",
-      desc: "Тут пишеш що робить цей скрипт — коротко і зрозуміло.",
-      img:  "https://...",        ← або прибери рядок і вкажи emoji нижче
-      img:  "Посилання на заображення для скрипта (можна прибрати і вказати emoji нижче)",     
-      url:  "https://drive.usercontent.google.com/download?id=XXXXXXX&export=download&confirm=t"
+    {
+      name: "VST PLUGIN",
+      desc: "файли помістити в папку C:\Program Files\VSTPlugins",
+      img:  "https://raw.githubusercontent.com/KaIIiToIIIkA/Plugins/refs/heads/main/image.png",
+      url:  "https://github.com/KaIIiToIIIkA/Plugins/raw/refs/heads/main/VSTPlugins.7z"
     },
-
-
-
+  
+    // Приклад як додавати нові скрипти:
+    // {
+    //   name: "Назва скрипта",
+    //   desc: "Тут пишеш що робить цей скрипт — коротко і зрозуміло.",
+    //   img:  "https://...",        ← або прибери рядок і вкажи emoji нижче
+    //   emoji: "🔧",             
+    //   url:  "https://drive.usercontent.google.com/download?id=XXXXXXX&export=download&confirm=t"
+    // },
 
   ];
  
 
-  document.getElementById('scripts-container').innerHTML = SCRIPTS.map(s => `
+ document.getElementById('scripts-container').innerHTML = SCRIPTS.map(s => `
     <div class="script-card">
       ${s.img
         ? `<img src="${s.img}" alt="${s.name}">`
@@ -300,7 +298,6 @@
     </div>
   `).join('');
 </script>
- -->
 
 <script>
   const _burger = document.getElementById('burger');
@@ -315,6 +312,39 @@
         _burger.classList.remove('open');
         _mobileMenu.classList.remove('open');
       });
+    });
+  }
+</script>
+
+<script>
+  // ── LIGHTBOX: клік на зображення скрипта → збільшення на весь екран ──
+  const _lbOverlay = document.getElementById('lightboxOverlay');
+  const _lbImg = document.getElementById('lightboxImg');
+  const _lbClose = document.getElementById('lightboxClose');
+  const _scriptsGrid = document.getElementById('scripts-container');
+
+  if (_lbOverlay && _lbImg && _lbClose && _scriptsGrid) {
+    const openLightbox = (src, alt) => {
+      _lbImg.src = src;
+      _lbImg.alt = alt || '';
+      _lbOverlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    };
+    const closeLightbox = () => {
+      _lbOverlay.classList.remove('open');
+      document.body.style.overflow = '';
+    };
+
+    _scriptsGrid.addEventListener('click', (e) => {
+      const clickedImg = e.target.closest('.script-card img');
+      if (clickedImg) openLightbox(clickedImg.src, clickedImg.alt);
+    });
+    _lbOverlay.addEventListener('click', (e) => {
+      if (e.target === _lbOverlay) closeLightbox();
+    });
+    _lbClose.addEventListener('click', closeLightbox);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLightbox();
     });
   }
 </script>
